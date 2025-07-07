@@ -207,11 +207,11 @@ module Homebrew
             [T::Array[Formula], T::Array[Cask::Cask]],
           )
         rescue FormulaOrCaskUnavailableError, Cask::CaskUnavailableError
-          cask_tap = CoreCaskTap.instance
-          if !cask_tap.installed? && (args.cask? || Tap.untapped_official_taps.exclude?(cask_tap.name))
-            cask_tap.ensure_installed!
-            retry if cask_tap.installed?
-          end
+          #cask_tap = CoreCaskTap.instance
+          #if !cask_tap.installed? && (args.cask? || Tap.untapped_official_taps.exclude?(cask_tap.name))
+          #  cask_tap.ensure_installed!
+          #  retry if cask_tap.installed?
+          #end
 
           raise
         end

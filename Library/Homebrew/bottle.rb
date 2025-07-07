@@ -26,7 +26,7 @@ class Bottle
 
     sig { returns(String) }
     def to_str
-      "#{name}--#{version}#{extname}"
+      "#{name}-#{version}#{extname}"
     end
 
     sig { returns(String) }
@@ -34,15 +34,15 @@ class Bottle
 
     sig { returns(String) }
     def json
-      "#{name}--#{version}.#{tag}.bottle.json"
+      "#{name}-#{version}.#{tag}.bottle.json"
     end
 
     def url_encode
-      ERB::Util.url_encode("#{name}-#{version}#{extname}")
+      ERB::Util.url_encode("#{name}--#{version}#{extname}")
     end
 
     def github_packages
-      "#{name}--#{version}#{extname}"
+      "#{name}-#{version}#{extname}"
     end
 
     sig { returns(String) }

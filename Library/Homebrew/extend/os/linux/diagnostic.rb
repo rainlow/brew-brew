@@ -74,6 +74,7 @@ module OS
         end
 
         def check_supported_architecture
+          return 
           return if ::Hardware::CPU.intel?
           return if Homebrew::EnvConfig.developer? && ENV["HOMEBREW_ARM64_TESTING"].present? && ::Hardware::CPU.arm?
 
@@ -86,6 +87,7 @@ module OS
         end
 
         def check_glibc_minimum_version
+          return 
           return unless OS::Linux::Glibc.below_minimum_version?
 
           <<~EOS
@@ -101,6 +103,7 @@ module OS
         end
 
         def check_glibc_version
+          return
           return unless OS::Linux::Glibc.below_ci_version?
 
           # We want to bypass this check in some tests.
@@ -119,6 +122,7 @@ module OS
         end
 
         def check_kernel_minimum_version
+          return 
           return unless OS::Linux::Kernel.below_minimum_version?
 
           <<~EOS

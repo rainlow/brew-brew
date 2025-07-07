@@ -27,11 +27,11 @@ EOS
   # other FD opened by the script.
   #
   # close FD first, this is required if parent process holds a different lock.
-  exec 200>&-
+  exec 7>&-
   # open the lock file to FD, so the shell process can hold the lock.
-  exec 200>"${lock_file}"
+  exec 7>"${lock_file}"
 
-  if ! _create_lock 200 "${command_name_and_args}"
+  if ! _create_lock 7 "${command_name_and_args}"
   then
     local lock_context
     if [[ -n "${HOMEBREW_LOCK_CONTEXT}" ]]
@@ -51,16 +51,16 @@ _create_lock() {
   local command_name_and_args="$2"
   local ruby="/usr/bin/ruby"
   local python="/usr/bin/python"
-  [[ -x "${ruby}" ]] || ruby="$(type -P ruby)"
-  [[ -x "${python}" ]] || python="$(type -P python)"
+  [[ -x "${ruby}" ]] || ruby="$(whence -p ruby)"
+  [[ -x "${python}" ]] || python="$(whence -p python)"
 
   local utils_lock_sh="${HOMEBREW_LIBRARY}/Homebrew/utils/lock_sh"
   local oldest_ruby_with_flock="1.8.7"
 
-  if [[ -x "$(type -P lockf)" ]]
+  if [[ -x "$(whence -p lockf)" ]]
   then
     lockf -t 0 "${lock_file_descriptor}"
-  elif [[ -x "$(type -P flock)" ]]
+  elif [[ -x "$(whence -p flock)" ]]
   then
     flock -n "${lock_file_descriptor}"
   elif [[ -x "${ruby}" ]] && "${ruby}" "${utils_lock_sh}/ruby_check_version.rb" "${oldest_ruby_with_flock}"
