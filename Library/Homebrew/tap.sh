@@ -7,18 +7,20 @@ normalise_tap_name() {
   local user
   local repository
 
-  user="$(tr '[:upper:]' '[:lower:]' <<<"${directory%%/*}")"
-  repository="$(tr '[:upper:]' '[:lower:]' <<<"${directory#*/}")"
-  repository="${repository#@(home|linux)brew-}"
+  user="${directory%%/*}"
+  user=${user:l}
+  repository="${directory#*/}"
+  repository=${repository:l}
+  repository="${repository#homebrew-}"
   echo "${user}/${repository}"
 }
 
 homebrew-tap() {
   local taplib="${HOMEBREW_LIBRARY}/Taps"
   (
-    shopt -s extglob
+    #shopt -s extglob
 
-    for directory in "${taplib}"/*/*
+    for directory in "${taplib}"/*/*(/N)
     do
       [[ -d "${directory}" ]] || continue
       normalise_tap_name "${directory#"${taplib}"/}"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # HOMEBREW_CCCFG is set by extend/ENV/super.rb
 # HOMEBREW_LIBRARY is set by bin/brew
@@ -9,7 +9,7 @@ pathremove() {
   local DIR=""
   local PATHVARIABLE="${2:-PATH}"
 
-  for DIR in ${!PATHVARIABLE}
+  for DIR in ${(P)PATHVARIABLE}
   do
     if [[ "${DIR}" != "$1" ]]
     then
@@ -26,5 +26,4 @@ export MAKE
 export PATH="${SAVED_PATH}"
 
 export HOMEBREW_CCCFG="O${HOMEBREW_CCCFG}"
-
 exec "${MAKE}" "$@"

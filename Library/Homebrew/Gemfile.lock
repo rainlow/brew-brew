@@ -166,7 +166,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  arm-linux
+  aarch64-linux-ohos
   arm64-darwin
   x86_64-darwin
   x86_64-linux

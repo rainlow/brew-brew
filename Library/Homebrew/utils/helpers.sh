@@ -78,12 +78,12 @@ git() {
 # Search given executable in PATH (remove dependency for `which` command)
 which() {
   # Alias to Bash built-in command `type -P`
-  type -P "$@"
+  whence -p "$@"
 }
 
 numeric() {
   local -a version_array
-  IFS=".rc" read -r -a version_array <<<"${1}"
+  IFS=".rc" read -r -A version_array <<<"${1}"
   printf "%01d%02d%02d%03d" "${version_array[@]}" 2>/dev/null
 }
 

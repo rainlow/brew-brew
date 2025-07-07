@@ -28,10 +28,26 @@ case "${OSTYPE}" in
     HOMEBREW_SYSTEM="$(uname -s)"
     ;;
 esac
+
+# use musl libc check ohos
+OHOS_MUSL_LIBC="/lib/ld-musl-aarch64.so.1"
+if [[ -f "${OHOS_MUSL_LIBC}" ]] && strings ${OHOS_MUSL_LIBC} | grep -q "OHOS"
+then
+  HOMEBREW_PROCESSOR="arm64"
+  HOMEBREW_SYSTEM="Linux"
+  HOMEBREW_OHOS_SYSTEM="ohos"
+  HOMEBREW_LINUX="1"
+  HOMEBREW_OHOS=1
+else
+  echo "Not Support !!!"
+fi
+
 HOMEBREW_PHYSICAL_PROCESSOR="${HOMEBREW_PROCESSOR}"
 
 HOMEBREW_MACOS_ARM_DEFAULT_PREFIX="/opt/homebrew"
 HOMEBREW_MACOS_ARM_DEFAULT_REPOSITORY="${HOMEBREW_MACOS_ARM_DEFAULT_PREFIX}"
+HOMEBREW_OHOS_DEFAULT_PREFIX="/opt/homebrew"
+HOMEBREW_OHOS_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_LINUX_DEFAULT_PREFIX="/home/linuxbrew/.linuxbrew"
 HOMEBREW_LINUX_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_GENERIC_DEFAULT_PREFIX="/usr/local"
@@ -44,6 +60,11 @@ elif [[ -n "${HOMEBREW_LINUX}" ]]
 then
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_LINUX_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_REPOSITORY}"
+    if [[ -n "${HOMEBREW_OHOS}" ]]
+    then
+      HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_OHOS_DEFAULT_PREFIX}"
+      HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_REPOSITORY}"
+    fi
 else
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_GENERIC_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_GENERIC_DEFAULT_REPOSITORY}"
@@ -438,6 +459,9 @@ then
   then
     export LC_ALL="en_US.UTF-8"
   fi
+elif [[ -n "${HOMEBREW_OHOS}" ]]
+then
+  export LC_ALL="en_US.UTF-8"
 else
   if ! command -v locale >/dev/null
   then
@@ -700,7 +724,7 @@ else
   HOMEBREW_PRODUCT="${HOMEBREW_SYSTEM}brew"
   # Don't try to follow /etc/os-release
   # shellcheck disable=SC1091,SC2154
-  [[ -n "${HOMEBREW_LINUX}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
+  [[ -n "${HOMEBREW_LINUX}" ]] && [[ -z "${HOMEBREW_OHOS}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
   : "${HOMEBREW_OS_VERSION:=$(uname -r)}"
   HOMEBREW_OS_USER_AGENT_VERSION="${HOMEBREW_OS_VERSION}"
 
@@ -708,13 +732,14 @@ else
   HOMEBREW_MINIMUM_CURL_VERSION="7.41.0"
 
   curl_version_output="$(${HOMEBREW_CURL} --version 2>/dev/null)"
-  curl_name_and_version="${curl_version_output%% (*}"
-  if [[ "$(numeric "${curl_name_and_version##* }")" -lt "$(numeric "${HOMEBREW_MINIMUM_CURL_VERSION}")" ]]
+  curl_name_and_version="${curl_version_output%% \(*}"
+  curl_version="${curl_name_and_version#curl }"
+  if [[ "$(numeric "${curl_version}")" -lt "$(numeric "${HOMEBREW_MINIMUM_CURL_VERSION}")" ]]
   then
     message="Please update your system curl or set HOMEBREW_CURL_PATH to a newer version.
 Minimum required version: ${HOMEBREW_MINIMUM_CURL_VERSION}
-Your curl version: ${curl_name_and_version##* }
-Your curl executable: $(type -p "${HOMEBREW_CURL}")"
+Your curl version: ${curl_version}
+Your curl executable: $(whence -p "${HOMEBREW_CURL}")"
 
     if [[ -z ${HOMEBREW_CURL_PATH} ]]
     then
@@ -734,6 +759,7 @@ Your curl executable: $(type -p "${HOMEBREW_CURL}")"
   # Git 2.7.4 is the version of git on Ubuntu 16.04 LTS (Xenial Xerus).
   HOMEBREW_MINIMUM_GIT_VERSION="2.7.0"
   git_version_output="$(${HOMEBREW_GIT} --version 2>/dev/null)"
+
   # $extra is intentionally discarded.
   # shellcheck disable=SC2034
   IFS='.' read -r major minor micro build extra <<<"${git_version_output##* }"
@@ -758,13 +784,13 @@ Your Git executable: $(unset git && type -p "${HOMEBREW_GIT}")"
 
   HOMEBREW_LINUX_MINIMUM_GLIBC_VERSION="2.13"
 
-  HOMEBREW_CORE_REPOSITORY_ORIGIN="$("${HOMEBREW_GIT}" -C "${HOMEBREW_CORE_REPOSITORY}" remote get-url origin 2>/dev/null)"
-  if [[ "${HOMEBREW_CORE_REPOSITORY_ORIGIN}" =~ (/linuxbrew|Linuxbrew/homebrew)-core(\.git)?$ ]]
-  then
-    # triggers migration code in update.sh
-    # shellcheck disable=SC2034
-    HOMEBREW_LINUXBREW_CORE_MIGRATION=1
-  fi
+  #HOMEBREW_CORE_REPOSITORY_ORIGIN="$("${HOMEBREW_GIT}" -C "${HOMEBREW_CORE_REPOSITORY}" remote get-url origin 2>/dev/null)"
+  #if [[ "${HOMEBREW_CORE_REPOSITORY_ORIGIN}" =~ (/linuxbrew|Linuxbrew/homebrew)-core(\.git)?$ ]]
+  #then
+  #  # triggers migration code in update.sh
+  #  # shellcheck disable=SC2034
+  #  HOMEBREW_LINUXBREW_CORE_MIGRATION=1
+  #fi
 fi
 
 setup_ca_certificates() {
@@ -795,12 +821,12 @@ then
   unset HOMEBREW_BOTTLE_DOMAIN
 fi
 
-HOMEBREW_API_DEFAULT_DOMAIN="https://formulae.brew.sh/api"
-HOMEBREW_BOTTLE_DEFAULT_DOMAIN="https://ghcr.io/v2/homebrew/core"
+HOMEBREW_API_DEFAULT_DOMAIN="https://harmonybrew.obs.ap-southeast-1.myhuaweicloud.com/homebrew-api"
+HOMEBREW_BOTTLE_DEFAULT_DOMAIN="https://harmonybrew.obs.ap-southeast-1.myhuaweicloud.com/homebrew-bottles"
 
 HOMEBREW_USER_AGENT="${HOMEBREW_PRODUCT}/${HOMEBREW_USER_AGENT_VERSION} (${HOMEBREW_SYSTEM}; ${HOMEBREW_PROCESSOR} ${HOMEBREW_OS_USER_AGENT_VERSION})"
 curl_version_output="$(curl --version 2>/dev/null)"
-curl_name_and_version="${curl_version_output%% (*}"
+curl_name_and_version="${curl_version_output%% \(*}"
 HOMEBREW_USER_AGENT_CURL="${HOMEBREW_USER_AGENT} ${curl_name_and_version// //}"
 
 # Timeout values to check for dead connections
@@ -827,6 +853,7 @@ export HOMEBREW_TEMP
 export HOMEBREW_CELLAR
 export HOMEBREW_CASKROOM
 export HOMEBREW_SYSTEM
+export HOMEBREW_OHOS_SYSTEM
 export HOMEBREW_SYSTEM_CA_CERTIFICATES_TOO_OLD
 export HOMEBREW_CURL
 export HOMEBREW_BREWED_CURL_PATH
@@ -990,14 +1017,14 @@ then
   export HOMEBREW_RUBY_WARNINGS="-W1"
 fi
 
-export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
+export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/brew.git"
 if [[ -z "${HOMEBREW_BREW_GIT_REMOTE}" ]]
 then
   HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"
 fi
 export HOMEBREW_BREW_GIT_REMOTE
 
-export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
+export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/homebrew-core.git"
 if [[ -z "${HOMEBREW_CORE_GIT_REMOTE}" ]]
 then
   HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"
@@ -1086,10 +1113,10 @@ else
   export HOMEBREW_GITHUB_PACKAGES_AUTH="Bearer QQ=="
 fi
 
-# Avoid picking up any random `sudo` in `PATH`.
-if [[ -x /usr/bin/sudo ]]
+#Avoid picking up any random `sudo` in `PATH`.
+if [[ -x /bin/sudo ]]
 then
-  SUDO=/usr/bin/sudo
+  SUDO=/bin/sudo
 else
   # Do this after ensuring we're using default Bash builtins.
   SUDO="$(command -v sudo 2>/dev/null)"

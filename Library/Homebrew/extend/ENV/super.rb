@@ -156,7 +156,7 @@ module Superenv
 
   sig { returns(T.nilable(PATH)) }
   def determine_path
-    path = PATH.new(Superenv.bin)
+    path = PATH.new(HOMEBREW_PREFIX/"bin")
 
     # Formula dependencies can override standard tools.
     path.append(deps.map(&:opt_bin))

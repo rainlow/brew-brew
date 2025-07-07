@@ -276,7 +276,7 @@ class Keg
         end
         false
       }
-      output, _status = Open3.capture2("xargs -0 file --no-dereference --print0",
+      output, _status = Open3.capture2("xargs -0 file",
                                        stdin_data: files.to_a.join("\0"))
       # `file` output sometimes contains data from the file, which may include
       # invalid UTF-8 entities, so tell Ruby this is just a bytestring

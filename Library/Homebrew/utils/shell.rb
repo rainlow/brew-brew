@@ -32,7 +32,7 @@ module Utils
 
     sig { returns(T.nilable(Symbol)) }
     def parent
-      from_path(`ps -p #{Process.ppid} -o ucomm=`.strip)
+      from_path(`ps -p #{Process.ppid}`.strip)
     end
 
     # Quote values. Quoting keys is overkill.

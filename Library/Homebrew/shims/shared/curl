@@ -1,4 +1,4 @@
-#!/bin/bash -p
+#!/bin/zsh -p
 
 # Make our $HOMEBREW_CURL selection universal - including in formulae usage.
 
@@ -11,6 +11,8 @@ then
   exit 1
 fi
 
+SHIM_FILE="${0##*/}"
+SHIM_REAL="$(/usr/bin/realpath "$0")"
 source "${HOMEBREW_LIBRARY}/Homebrew/shims/utils.sh"
 
 # SSL_CERT_FILE alone does not clear the CAPath setting.

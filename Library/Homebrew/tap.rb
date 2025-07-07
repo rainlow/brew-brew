@@ -288,7 +288,7 @@ class Tap
   # The default remote path to this {Tap}.
   sig { returns(String) }
   def default_remote
-    "https://github.com/#{full_name}"
+    "https://gitcode.com/#{full_name}"
   end
 
   sig { returns(String) }
@@ -517,7 +517,6 @@ class Tap
       end
       raise
     end
-
     Commands.rebuild_commands_completion_list
     link_completions_and_manpages
 
@@ -1215,7 +1214,7 @@ end
 class CoreTap < AbstractCoreTap
   sig { void }
   def initialize
-    super "Homebrew", "core"
+    super "Harmonybrew", "core"
   end
 
   sig { override.void }

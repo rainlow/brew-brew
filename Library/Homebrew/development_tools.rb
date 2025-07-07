@@ -83,8 +83,8 @@ class DevelopmentTools
     sig { returns(Version) }
     def clang_build_version
       @clang_build_version ||= T.let(
-        if (path = locate("clang")) &&
-          (build_version = `#{path} --version`[%r{clang(-| version [^ ]+ \(tags/RELEASE_)(\d{2,})}, 2])
+        if (path = locate("clang")) && (version = `#{path} --version`)
+          build_version = version.split()[2].delete(".")
           Version.new(build_version)
         else
           Version::NULL

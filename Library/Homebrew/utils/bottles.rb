@@ -21,7 +21,7 @@ module Utils
           tag
         else
           @tag ||= Tag.new(
-            system: HOMEBREW_SYSTEM.downcase.to_sym,
+            system: HOMEBREW_OHOS_SYSTEM.downcase.to_sym,
             arch:   HOMEBREW_PROCESSOR.downcase.to_sym,
           )
         end

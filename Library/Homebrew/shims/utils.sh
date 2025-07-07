@@ -1,4 +1,4 @@
-set +o posix
+# set +o posix
 
 quiet_safe_cd() {
   cd "$1" &>/dev/null || {
@@ -27,7 +27,7 @@ realpath() {
 
   while [[ -L "${path}" ]]
   do
-    dest="$(readlink "${path}")"
+    dest="$(/usr/bin/readlink "${path}")"
     if [[ "${dest}" == "/"* ]]
     then
       path="${dest}"
@@ -47,7 +47,7 @@ executable() {
 }
 
 lowercase() {
-  echo "$1" | tr "[:upper:]" "[:lower:]"
+  echo "${1:l}"
 }
 
 safe_exec() {
@@ -77,18 +77,18 @@ try_exec_non_system() {
   local file="$1"
   shift
 
-  local path
+  #local path
   while read -r path
   do
     if [[ "${path}" != "/usr/bin/${file}" ]]
     then
       safe_exec "${path}" "$@"
     fi
-  done < <(type -aP "${file}")
+  done < <(whence -a "${file}")
 }
 
-SHIM_FILE="${0##*/}"
-SHIM_REAL="$(realpath "$0")"
+# SHIM_FILE="${0##*/}"
+# SHIM_REAL="$(realpath "$0")"
 
 if [[ "$1" == "--homebrew="* ]]
 then
