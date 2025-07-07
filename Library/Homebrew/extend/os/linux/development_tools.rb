@@ -28,10 +28,11 @@ module OS
         end
 
         sig { returns(Symbol) }
-        def default_compiler = :gcc
+        def default_compiler = :clang
 
         sig { returns(T::Boolean) }
         def needs_libc_formula?
+          return false
           return @needs_libc_formula unless @needs_libc_formula.nil?
 
           @needs_libc_formula = T.let(nil, T.nilable(T::Boolean))
@@ -53,6 +54,7 @@ module OS
 
         sig { returns(T::Boolean) }
         def needs_compiler_formula?
+          return false
           return @needs_compiler_formula unless @needs_compiler_formula.nil?
 
           @needs_compiler_formula = T.let(nil, T.nilable(T::Boolean))

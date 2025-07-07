@@ -177,6 +177,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  aarch64-linux-ohos
   arm64-darwin
   x86_64-darwin
   x86_64-linux
@@ -228,7 +229,7 @@ DEPENDENCIES
   yard-sorbet
 
 RUBY VERSION
-   ruby 3.4.8p72
+   ruby 3.4.6
 
 BUNDLED WITH
    2.6.9

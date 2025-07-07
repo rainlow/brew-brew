@@ -48,8 +48,7 @@ homebrew-formula-path() {
   else
     local formula_path
     formula_path="$(
-      shopt -s nullglob
-      echo "${HOMEBREW_REPOSITORY}/Library/Taps"/*/*/{Formula/,HomebrewFormula/,Formula/*/,}"${formula}.rb"
+      echo "${HOMEBREW_REPOSITORY}/Library/Taps"/*/*/{Formula/,HomebrewFormula/,Formula/*/,}"${formula}.rb"(N)
     )"
     [[ -n "${formula_path}" ]] && formula_exists="1"
   fi

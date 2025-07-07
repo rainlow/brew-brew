@@ -18,13 +18,9 @@ homebrew-shellenv() {
   # This is known to fail under some sandboxes.
   if [[ -z "${HOMEBREW_SHELL_NAME}" ]]
   then
-    HOMEBREW_SHELL_NAME="$(/bin/ps -p "${PPID}" -c -o comm= 2>/dev/null)"
-  fi
-
-  # Fall back to the (login) shell name from the environment.
-  if [[ -z "${HOMEBREW_SHELL_NAME}" ]]
-  then
-    HOMEBREW_SHELL_NAME="${SHELL##*/}"
+    HOMEBREW_SHELL_NAME="$1"
+  else
+    HOMEBREW_SHELL_NAME="zsh"
   fi
 
   if [[ -n "${HOMEBREW_MACOS}" ]] &&

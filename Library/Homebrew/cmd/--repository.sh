@@ -14,8 +14,8 @@ tap_path() {
     odie "Invalid tap name: ${tap}"
   fi
 
-  user="$(echo "${tap%%/*}" | tr '[:upper:]' '[:lower:]')"
-  repo="$(echo "${tap#*/}" | tr '[:upper:]' '[:lower:]')"
+  user="${${tap%%/*}:l}"
+  repo="${${tap#*/}:l}"
 
   for part in "${user}" "${repo}"
   do
@@ -39,8 +39,7 @@ homebrew---repository() {
   fi
 
   (
-    shopt -s extglob
-    for tap in "$@"
+    for tap in "$@";
     do
       tap_path "${tap}"
     done

@@ -83,7 +83,6 @@ module OS
       def determine_rpath_paths(formula)
         PATH.new(
           *formula&.lib,
-          "#{HOMEBREW_PREFIX}/opt/gcc/lib/gcc/current",
           PATH.new(run_time_deps.map { |dep| dep.opt_lib.to_s }).existing,
           "#{HOMEBREW_PREFIX}/lib",
         )
@@ -91,7 +90,7 @@ module OS
 
       sig { returns(T.nilable(String)) }
       def determine_dynamic_linker_path
-        path = "#{HOMEBREW_PREFIX}/lib/ld.so"
+        path = "/lib/ld-musl-aarch64.so.1"
         return unless File.readable? path
 
         path

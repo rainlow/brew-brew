@@ -40,11 +40,11 @@ module Homebrew
       sig { params(formula: ::Formula, download_queue: T.nilable(Homebrew::DownloadQueue)).returns(Homebrew::API::SourceDownload) }
       def self.source_download(formula, download_queue: nil)
         path = formula.ruby_source_path || "Formula/#{formula.name}.rb"
-        git_head = formula.tap_git_head || "HEAD"
-        tap = formula.tap&.full_name || "Homebrew/homebrew-core"
+        git_head = formula.tap_git_head || "main"
+        tap = formula.tap&.full_name || "Harmonybrew/homebrew-core"
 
         download = Homebrew::API::SourceDownload.new(
-          "https://raw.githubusercontent.com/#{tap}/#{git_head}/#{path}",
+          "https://raw.gitcode.com/#{tap}/raw/#{git_head}/#{path}",
           formula.ruby_source_checksum,
           cache: HOMEBREW_CACHE_API_SOURCE/"#{tap}/#{git_head}/Formula",
         )

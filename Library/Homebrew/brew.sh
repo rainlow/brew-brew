@@ -28,10 +28,26 @@ case "${OSTYPE}" in
     HOMEBREW_SYSTEM="$(uname -s)"
     ;;
 esac
+
+# use musl libc check ohos
+OHOS_MUSL_LIBC="/lib/ld-musl-aarch64.so.1"
+if [[ -f "${OHOS_MUSL_LIBC}" ]] && strings ${OHOS_MUSL_LIBC} 2>/dev/null | grep -q "OHOS" &>/dev/null
+then
+  HOMEBREW_PROCESSOR="arm64"
+  HOMEBREW_SYSTEM="Linux"
+  HOMEBREW_OHOS_SYSTEM="ohos"
+  HOMEBREW_LINUX="1"
+  HOMEBREW_OHOS=1
+else
+  echo "Not Support !!!"
+fi
+
 HOMEBREW_PHYSICAL_PROCESSOR="${HOMEBREW_PROCESSOR}"
 
 HOMEBREW_MACOS_ARM_DEFAULT_PREFIX="/opt/homebrew"
 HOMEBREW_MACOS_ARM_DEFAULT_REPOSITORY="${HOMEBREW_MACOS_ARM_DEFAULT_PREFIX}"
+HOMEBREW_OHOS_DEFAULT_PREFIX="/storage/Users/currentUser/.harmonybrew"
+HOMEBREW_OHOS_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_LINUX_DEFAULT_PREFIX="/home/linuxbrew/.linuxbrew"
 HOMEBREW_LINUX_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_GENERIC_DEFAULT_PREFIX="/usr/local"
@@ -44,6 +60,11 @@ elif [[ -n "${HOMEBREW_LINUX}" ]]
 then
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_LINUX_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_REPOSITORY}"
+    if [[ -n "${HOMEBREW_OHOS}" ]]
+    then
+      HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_OHOS_DEFAULT_PREFIX}"
+      HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_REPOSITORY}"
+    fi
 else
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_GENERIC_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_GENERIC_DEFAULT_REPOSITORY}"
@@ -65,12 +86,7 @@ else
   CACHE_HOME="${HOMEBREW_XDG_CACHE_HOME:-${HOME}/.cache}"
   HOMEBREW_DEFAULT_CACHE="${CACHE_HOME}/Homebrew"
   HOMEBREW_DEFAULT_LOGS="${CACHE_HOME}/Homebrew/Logs"
-  if [[ -r "/var/tmp" && -w "/var/tmp" ]]
-  then
-    HOMEBREW_DEFAULT_TEMP="/var/tmp"
-  else
-    HOMEBREW_DEFAULT_TEMP="/tmp"
-  fi
+  HOMEBREW_DEFAULT_TEMP="/storage/Users/currentUser/.tmp"
 fi
 
 realpath() {
@@ -120,6 +136,11 @@ HOMEBREW_TEMP="${HOMEBREW_TEMP:-${HOMEBREW_DEFAULT_TEMP}}"
 if [[ ! -w "${HOMEBREW_TEMP}" ]]
 then
   HOMEBREW_TEMP="${HOMEBREW_DEFAULT_TEMP}"
+fi
+
+if [[ ! -d "${HOMEBREW_TEMP}" ]]
+then
+  mkdir "${HOMEBREW_TEMP}"
 fi
 
 # commands that take a single or no arguments.
@@ -216,7 +237,21 @@ case "$1" in
     homebrew-setup-ruby "$1"
     exit 0
     ;;
+  vendor-install)
+    source "${HOMEBREW_LIBRARY}/Homebrew/cmd/vendor-install.sh"
+    shift
+    homebrew-vendor-install "$@"
+    exit $?
+    ;;
 esac
+
+# find available git
+# if no git in system, install portable-git in vendor
+if [[ -n "${HOMEBREW_OHOS}" ]]
+then
+  source "${HOMEBREW_LIBRARY}/Homebrew/utils/git.sh"
+  setup-vendor-git-path
+fi
 
 #####
 ##### Next, define all other helper functions.
@@ -225,6 +260,7 @@ esac
 source "${HOMEBREW_LIBRARY}/Homebrew/utils/helpers.sh"
 
 check-run-command-as-root() {
+  [[ -z ${HOMEBREW_OHOS} ]] || return
   [[ "${EUID}" == 0 || "${UID}" == 0 ]] || return
 
   # Allow Azure Pipelines/GitHub Actions/Docker/Podman/Concourse/Kubernetes to do everything as root (as it's normal there)
@@ -415,6 +451,9 @@ then
   then
     export LC_ALL="en_US.UTF-8"
   fi
+elif [[ -n "${HOMEBREW_OHOS}" ]]
+then
+  export LC_ALL="en_US.UTF-8"
 else
   if ! command -v locale >/dev/null
   then
@@ -494,7 +533,7 @@ setup_git() {
   then
     HOMEBREW_GIT="${HOMEBREW_GIT_PATH}"
   else
-    HOMEBREW_GIT="git"
+    HOMEBREW_GIT="${HOMEBREW_VENDOR_GIT_PATH:-git}"
   fi
 }
 
@@ -666,7 +705,7 @@ else
   HOMEBREW_PRODUCT="${HOMEBREW_SYSTEM}brew"
   # Don't try to follow /etc/os-release
   # shellcheck disable=SC1091,SC2154
-  [[ -n "${HOMEBREW_LINUX}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
+  [[ -n "${HOMEBREW_LINUX}" ]] && [[ -z "${HOMEBREW_OHOS}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
   : "${HOMEBREW_OS_VERSION:=$(uname -r)}"
   HOMEBREW_OS_USER_AGENT_VERSION="${HOMEBREW_OS_VERSION}"
 
@@ -674,13 +713,14 @@ else
   HOMEBREW_MINIMUM_CURL_VERSION="7.41.0"
 
   curl_version_output="$(${HOMEBREW_CURL} --version 2>/dev/null)"
-  curl_name_and_version="${curl_version_output%% (*}"
-  if [[ "$(numeric "${curl_name_and_version##* }")" -lt "$(numeric "${HOMEBREW_MINIMUM_CURL_VERSION}")" ]]
+  curl_name_and_version="${curl_version_output%% \(*}"
+  curl_version="${curl_name_and_version#curl }"
+  if [[ "$(numeric "${curl_version}")" -lt "$(numeric "${HOMEBREW_MINIMUM_CURL_VERSION}")" ]]
   then
     message="Please update your system curl or set HOMEBREW_CURL_PATH to a newer version.
 Minimum required version: ${HOMEBREW_MINIMUM_CURL_VERSION}
-       Your curl version: ${curl_name_and_version##* }
-    Your curl executable: $(type -p "${HOMEBREW_CURL}")"
+Your curl version: ${curl_version}
+Your curl executable: $(whence -p "${HOMEBREW_CURL}")"
 
     if [[ -z ${HOMEBREW_CURL_PATH} ]]
     then
@@ -700,6 +740,7 @@ Minimum required version: ${HOMEBREW_MINIMUM_CURL_VERSION}
   # Git 2.7.4 is the version of git on Ubuntu 16.04 LTS (Xenial Xerus).
   HOMEBREW_MINIMUM_GIT_VERSION="2.7.0"
   git_version_output="$(${HOMEBREW_GIT} --version 2>/dev/null)"
+
   # $extra is intentionally discarded.
   # shellcheck disable=SC2034
   IFS='.' read -r major minor micro build extra < <(printf '%s' "${git_version_output##* }")
@@ -753,12 +794,12 @@ then
   unset HOMEBREW_BOTTLE_DOMAIN
 fi
 
-HOMEBREW_API_DEFAULT_DOMAIN="https://formulae.brew.sh/api"
-HOMEBREW_BOTTLE_DEFAULT_DOMAIN="https://ghcr.io/v2/homebrew/core"
+HOMEBREW_API_DEFAULT_DOMAIN="https://harmonybrew.atomgit.com/api"
+HOMEBREW_BOTTLE_DEFAULT_DOMAIN="https://harmonybrew.atomgit.com/bottles"
 
 HOMEBREW_USER_AGENT="${HOMEBREW_PRODUCT}/${HOMEBREW_USER_AGENT_VERSION} (${HOMEBREW_SYSTEM}; ${HOMEBREW_PROCESSOR} ${HOMEBREW_OS_USER_AGENT_VERSION})"
 curl_version_output="$(curl --version 2>/dev/null)"
-curl_name_and_version="${curl_version_output%% (*}"
+curl_name_and_version="${curl_version_output%% \(*}"
 HOMEBREW_USER_AGENT_CURL="${HOMEBREW_USER_AGENT} ${curl_name_and_version// //}"
 
 # Timeout values to check for dead connections
@@ -785,6 +826,7 @@ export HOMEBREW_TEMP
 export HOMEBREW_CELLAR
 export HOMEBREW_CASKROOM
 export HOMEBREW_SYSTEM
+export HOMEBREW_OHOS_SYSTEM
 export HOMEBREW_SYSTEM_CA_CERTIFICATES_TOO_OLD
 export HOMEBREW_CURL
 export HOMEBREW_BREWED_CURL_PATH
@@ -948,14 +990,14 @@ then
   export HOMEBREW_RUBY_WARNINGS="-W1"
 fi
 
-export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
+export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/brew.git"
 if [[ -z "${HOMEBREW_BREW_GIT_REMOTE}" ]]
 then
   HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"
 fi
 export HOMEBREW_BREW_GIT_REMOTE
 
-export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
+export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/homebrew-core.git"
 if [[ -z "${HOMEBREW_CORE_GIT_REMOTE}" ]]
 then
   HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"
@@ -1046,25 +1088,6 @@ then
 else
   export HOMEBREW_GITHUB_PACKAGES_AUTH="Bearer QQ=="
 fi
-
-# Avoid picking up any random `sudo` in `PATH`.
-if [[ -x /usr/bin/sudo ]]
-then
-  SUDO=/usr/bin/sudo
-else
-  # Do this after ensuring we're using default Bash builtins.
-  SUDO="$(command -v sudo 2>/dev/null)"
-fi
-
-# Reset sudo timestamp to avoid running unauthorized sudo commands
-if [[ -n "${SUDO}" ]]
-then
-  "${SUDO}" --reset-timestamp 2>/dev/null || true
-fi
-unset SUDO
-
-# Remove internal variables
-unset HOMEBREW_INTERNAL_ALLOW_PACKAGES_FROM_PATHS
 
 if [[ -n "${HOMEBREW_BASH_COMMAND}" ]]
 then

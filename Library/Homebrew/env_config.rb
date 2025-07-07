@@ -142,7 +142,7 @@ module Homebrew
       },
       HOMEBREW_CURL_RETRIES:                     {
         description: "Pass the given retry count to `--retry` when invoking `curl`(1).",
-        default:     3,
+        default:     5,
       },
       HOMEBREW_CURL_VERBOSE:                     {
         description: "If set, pass `--verbose` when invoking `curl`(1).",
@@ -539,6 +539,10 @@ module Homebrew
       HOMEBREW_VERIFY_ATTESTATIONS:              {
         description: "If set, Homebrew will use the `gh` tool to verify cryptographic attestations " \
                      "of build provenance for bottles from homebrew-core.",
+        boolean:     true,
+      },
+      HOMEBREW_OHOS_BOTTLE_BINARY_SIGN: {
+        description: "If set, automatically sign ELF binaries in bottles for OHOS.",
         boolean:     true,
       },
       SUDO_ASKPASS:                              {

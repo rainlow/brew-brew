@@ -300,7 +300,7 @@ class Pathname
     targets.each do |target|
       target = Pathname.new(target) # allow pathnames or strings
       join(target.basename).write <<~SH
-        #!/bin/bash
+        #!/bin/sh
         exec "#{target}" "$@"
       SH
     end

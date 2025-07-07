@@ -158,6 +158,10 @@
 **/vendor/cache/
 **/vendor/specifications/
 
+# Ignore portable-git and portable-ruby
+**/vendor/portable-git/
+**/vendor/portable-ruby/
+
 # Ignore `bin` contents (again).
 /bin
 

@@ -33,7 +33,7 @@ homebrew-list() {
       1 | l | r | t) ls_args+=("-${arg}") ;;
       -)
         local parsed_index=$((OPTIND - 1)) # Parse full arg to reject e.g. -r-formula
-        case "${!parsed_index}" in
+        case "${(P)parsed_index}" in
           --formula | --formulae) formula=1 ;;
           --cask | --casks) cask=1 ;;
           *) return 1 ;;
@@ -57,7 +57,7 @@ homebrew-list() {
     fi
 
     local formula_output
-    formula_output="$(/usr/bin/env "${ls_env[@]}" ls "${ls_args[@]}" "${HOMEBREW_CELLAR}")" || exit 1
+    formula_output="$(/bin/env "${ls_env[@]}" ls "${ls_args[@]}" "${HOMEBREW_CELLAR}")" || exit 1
     if [[ -n "${formula_output}" ]]
     then
       echo "${formula_output}"
@@ -77,7 +77,7 @@ homebrew-list() {
     fi
 
     local cask_output
-    cask_output="$(/usr/bin/env "${ls_env[@]}" ls "${ls_args[@]}" "${HOMEBREW_CASKROOM}")" || exit 1
+    cask_output="$(/bin/env "${ls_env[@]}" ls "${ls_args[@]}" "${HOMEBREW_CASKROOM}")" || exit 1
     if [[ -n "${cask_output}" ]]
     then
       echo "${cask_output}"

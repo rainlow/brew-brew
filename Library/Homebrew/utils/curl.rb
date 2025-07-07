@@ -157,7 +157,7 @@ module Utils
       args << "--max-time" << max_time.round(3) if max_time.present?
 
       # A non-positive integer (e.g. 0) or `nil` will omit this argument
-      args << "--retry" << retries if retries&.positive?
+      args << "--retry" << retries << "--retry-delay" << "2" << "--retry-all-errors" if retries&.positive?
 
       args << "--retry-max-time" << retry_max_time.round if retry_max_time.present?
 
@@ -279,8 +279,7 @@ module Utils
         end
       end
 
-      args = ["--remote-time", "--output", destination.to_s, *args]
-
+      args = ["-k", "-L", "--remote-time", "--output", destination.to_s, *args]
       curl(*args, **options)
     end
 

@@ -20,10 +20,10 @@ module Utils
         when Tag
           tag
         else
-          @tag ||= T.let(Tag.new(
-                           system: HOMEBREW_SYSTEM.downcase.to_sym,
-                           arch:   HOMEBREW_PROCESSOR.downcase.to_sym,
-                         ), T.nilable(Tag))
+          @tag ||= Tag.new(
+            system: HOMEBREW_OHOS_SYSTEM.downcase.to_sym,
+            arch:   HOMEBREW_PROCESSOR.downcase.to_sym,
+          )
         end
       end
 

@@ -32,7 +32,7 @@ module Utils
 
     sig { returns(T.nilable(Symbol)) }
     def parent
-      from_path(`ps -p #{Process.ppid} -o ucomm=`.strip)
+      from_path(`ps -p #{Process.ppid}`.strip)
     end
 
     # Quote values. Quoting keys is overkill.
@@ -50,6 +50,8 @@ module Utils
         "#{key}=(#{sh_quote(value)})"
       when :csh, :tcsh
         "setenv #{key} #{csh_quote(value)};"
+      else
+        "export #{key}=\"#{sh_quote(value)}\""
       end
     end
 

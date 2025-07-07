@@ -9,6 +9,7 @@ module OS
       # the host glibc is new enough. Brew will fail to create a symlink for
       # ld.so if the host linker cannot be found in this list.
       DYNAMIC_LINKERS = %w[
+        /lib/ld-musl-aarch64.so.1
         /lib64/ld-linux-x86-64.so.2
         /lib64/ld64.so.2
         /lib/ld-linux.so.3

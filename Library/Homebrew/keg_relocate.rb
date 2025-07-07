@@ -171,6 +171,7 @@ class Keg
 
   sig { returns(T::Array[Pathname]) }
   def replace_locations_with_placeholders
+    return if OS.ohos?
     relocation = prepare_relocation_to_placeholders.freeze
     relocate_dynamic_linkage(relocation, skip_protodesc_cold: true)
     replace_text_in_files(relocation)
@@ -193,6 +194,7 @@ class Keg
 
   sig { params(files: T.nilable(T::Array[Pathname]), skip_linkage: T::Boolean).void }
   def replace_placeholders_with_locations(files, skip_linkage: false)
+    return if OS.ohos?
     relocation = prepare_relocation_to_locations.freeze
     relocate_dynamic_linkage(relocation) unless skip_linkage
     replace_text_in_files(relocation, files:)

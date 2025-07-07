@@ -628,6 +628,11 @@ on_request: installed_on_request?, options:)
 
     build_bottle_postinstall if build_bottle?
 
+    if Homebrew::EnvConfig.ohos_bottle_binary_sign? && build_bottle? &&  formula.name != "ohos-sdk"
+      sign_ohos_bottle_binaries
+    end
+
+
     opoo "Nothing was installed to #{formula.prefix}" unless formula.latest_version_installed?
     end_time = Time.now
     Homebrew.messages.package_installed(formula.name, end_time - start_time)
@@ -1532,6 +1537,8 @@ on_request: installed_on_request?, options:)
     tab.tap = formula.tap
     tab.write
 
+    return if OS.ohos?
+
     keg = Keg.new(formula.prefix)
     skip_linkage = formula.bottle_specification.skip_relocation?
     keg.replace_placeholders_with_locations(tab.changed_files, skip_linkage:)
@@ -1746,6 +1753,43 @@ on_request: installed_on_request?, options:)
     return if @requirement_messages.empty?
 
     $stderr.puts @requirement_messages
+  end
+
+  sig { void }
+  def sign_ohos_bottle_binaries
+    keg_path = formula.prefix
+    return unless keg_path.directory?
+
+    ohai "OHOS Code Signing: Processing ELF files in #{keg_path.basename}"
+
+    keg_path.find do |path|
+      next if path.directory? || path.symlink? || path.size < 18
+
+      header = path.read(18).dup.b
+      next unless header[0..3] == "\x7fELF".dup.b
+
+      # Skipping relocatable object, only sign executable and shared object
+      # 1 = ET_REL (Relocatable, .o)
+      # 2 = ET_EXEC (Executable)
+      # 3 = ET_DYN (Shared Object, .so)
+      elf_type = header[16..17].unpack1("S")
+      next unless [2, 3].include?(elf_type)
+
+      ohai "Signing: #{path.relative_path_from(keg_path)}"
+
+      begin
+        old_mode = path.stat.mode
+        path.chmod(old_mode | 0200)
+
+        safe_system "llvm-strip", "--remove-section=.codesign", path.to_s
+        safe_system "binary-sign-tool", "sign", "-inFile", path.to_s, "-outFile", path.to_s, "-selfSign", "1"
+
+        path.chmod(old_mode)
+      rescue => e
+        opoo "Failed to sign #{path.basename}: #{e.message}"
+        path.chmod(old_mode) if path.exist?
+      end
+    end
   end
 end
 

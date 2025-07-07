@@ -26,7 +26,7 @@ module Kernel
 
     term = ENV.fetch("HOMEBREW_TERM", ENV.fetch("TERM", nil))
     with_env(TERM: term) do
-      Process.wait fork { exec Utils::Shell.preferred_path(default: "/bin/bash") }
+      Process.wait fork { exec Utils::Shell.preferred_path(default: "/usr/bin/zsh") }
     end
 
     return if $CHILD_STATUS.success?

@@ -11,7 +11,7 @@ module Homebrew
 
       cmd_args do
         description <<~EOS
-          Install Homebrew's portable Ruby.
+          Install Homebrew's portable Git or Ruby.
         EOS
 
         named_args :target

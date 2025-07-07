@@ -3164,6 +3164,8 @@ class Formula
   # but the formula links to.
   sig { returns(T::Array[Dependency]) }
   def undeclared_runtime_dependencies
+    return [] if OS.ohos?
+
     keg = any_installed_keg
     return [] unless keg
 

@@ -137,7 +137,7 @@ If there's no Homebrew Portable Ruby available for your processor:
       brew vendor-install ruby || odie "${upgrade_fail}"
     fi
     HOMEBREW_BOOTSNAP_GEM_PATH="$(
-      shopt -s nullglob
+      setopt localoptions nullglob
       echo "${vendor_ruby_root}"/lib/ruby/gems/*/gems/bootsnap-*/lib/bootsnap 2>/dev/null
     )"
   else

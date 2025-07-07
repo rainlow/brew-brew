@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/zsh
 
 # HOMEBREW_CCCFG is set by extend/ENV/super.rb
 # HOMEBREW_LIBRARY is set by bin/brew
@@ -9,7 +9,7 @@ pathremove() {
   local DIR=""
   local PATHVARIABLE="${2:-PATH}"
 
-  for DIR in ${!PATHVARIABLE}
+  for DIR in ${(P)PATHVARIABLE}
   do
     if [[ "${DIR}" != "$1" ]]
     then
@@ -20,11 +20,10 @@ pathremove() {
 }
 
 SAVED_PATH="${PATH}"
-pathremove "${HOMEBREW_LIBRARY}/Homebrew/shims/linux/super"
+path=( ${path:#${HOMEBREW_LIBRARY}/Homebrew/shims/linux/super} )
 MAKE="$(command -v make)"
 export MAKE
 export PATH="${SAVED_PATH}"
 
 export HOMEBREW_CCCFG="O${HOMEBREW_CCCFG}"
-
 exec "${MAKE}" "$@"

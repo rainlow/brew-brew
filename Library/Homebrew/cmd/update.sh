@@ -360,7 +360,7 @@ EOS
   if [[ -n "${HOMEBREW_NO_UPDATE_CLEANUP}" ]]
   then
     if [[ -z "${MAIN_MIGRATION_REQUIRED}" && "${INITIAL_BRANCH}" != "${UPSTREAM_BRANCH}" && -n "${INITIAL_BRANCH}" ]] &&
-       [[ ! "${INITIAL_BRANCH}" =~ ^v[0-9]+\.[0-9]+\.[0-9]|stable$ ]]
+       [[ ! "${INITIAL_BRANCH}" =~ ^(v[0-9]+\.[0-9]+\.[0-9]|stable)$ ]]
     then
       git checkout "${INITIAL_BRANCH}" "${QUIET_ARGS[@]}"
     fi
@@ -703,7 +703,7 @@ EOS
   rm -f "${update_failed_file}"
   rm -f "${missing_remote_ref_dirs_file}"
 
-  for DIR in "${HOMEBREW_REPOSITORY}" "${HOMEBREW_LIBRARY}"/Taps/*/*
+  for DIR in "${HOMEBREW_REPOSITORY}" "${HOMEBREW_LIBRARY}"/Taps/*/*(/N)
   do
     if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API}" ]] &&
        [[ -n "${HOMEBREW_UPDATE_AUTO}" || (-z "${HOMEBREW_DEVELOPER}" && -z "${HOMEBREW_DEV_CMD_RUN}") ]] &&
@@ -787,15 +787,15 @@ EOS
 
       # HOMEBREW_UPDATE_FORCE and HOMEBREW_UPDATE_AUTO aren't modified here so ignore subshell warning.
       # shellcheck disable=SC2030
-      if [[ "${UPSTREAM_REPOSITORY_URL}" == "https://github.com/"* ]]
+      if [[ "${UPSTREAM_REPOSITORY_URL}" == "https://gitcode.com/"* ]]
       then
         UPSTREAM_REPOSITORY="${UPSTREAM_REPOSITORY_URL#https://github.com/}"
         UPSTREAM_REPOSITORY="${UPSTREAM_REPOSITORY%.git}"
       elif [[ "${DIR}" != "${HOMEBREW_REPOSITORY}" ]] &&
            [[ "${UPSTREAM_REPOSITORY_URL}" =~ https://([[:alnum:]_:]+)@github.com/(.*)$ ]]
       then
-        UPSTREAM_REPOSITORY="${BASH_REMATCH[2]%.git}"
-        UPSTREAM_REPOSITORY_TOKEN="${BASH_REMATCH[1]#*:}"
+        UPSTREAM_REPOSITORY="${match[2]%.git}"
+        UPSTREAM_REPOSITORY_TOKEN="${match[1]#*:}"
       fi
 
       MAIN_MIGRATION_REQUIRED=
@@ -938,7 +938,7 @@ EOS
     export HOMEBREW_MISSING_REMOTE_REF_DIRS
   fi
 
-  for DIR in "${HOMEBREW_REPOSITORY}" "${HOMEBREW_LIBRARY}"/Taps/*/*
+  for DIR in "${HOMEBREW_REPOSITORY}" "${HOMEBREW_LIBRARY}"/Taps/*/*(/N)
   do
     if [[ -z "${HOMEBREW_NO_INSTALL_FROM_API}" ]] &&
        [[ -n "${HOMEBREW_UPDATE_AUTO}" || (-z "${HOMEBREW_DEVELOPER}" && -z "${HOMEBREW_DEV_CMD_RUN}") ]] &&
@@ -959,11 +959,11 @@ EOS
 
     TAP_VAR="$(repository_var_suffix "${DIR}")"
     UPSTREAM_BRANCH_VAR="UPSTREAM_BRANCH${TAP_VAR}"
-    UPSTREAM_BRANCH="${!UPSTREAM_BRANCH_VAR}"
+    UPSTREAM_BRANCH="${(P)UPSTREAM_BRANCH_VAR}"
     CURRENT_REVISION="$(read_current_revision)"
 
     PREFETCH_REVISION_VAR="PREFETCH_REVISION${TAP_VAR}"
-    PREFETCH_REVISION="${!PREFETCH_REVISION_VAR}"
+    PREFETCH_REVISION="${(P)PREFETCH_REVISION_VAR}"
     POSTFETCH_REVISION="$(git rev-parse -q --verify refs/remotes/origin/"${UPSTREAM_BRANCH}")"
 
     # HOMEBREW_UPDATE_FORCE and HOMEBREW_VERBOSE weren't modified in subshell.

@@ -8,9 +8,9 @@
 # HOMEBREW_PHYSICAL_PROCESSOR, HOMEBREW_PROCESSOR, HOMEBREW_USER_AGENT_CURL are set by brew.sh
 # shellcheck disable=SC2154
 source "${HOMEBREW_LIBRARY}/Homebrew/utils/lock.sh"
-source "${HOMEBREW_LIBRARY}/Homebrew/utils/ruby.sh"
 
 VENDOR_DIR="${HOMEBREW_LIBRARY}/Homebrew/vendor"
+HOMEBREW_VENDOR_DEFAULT_DOMAIN="https://harmonybrew.atomgit.com/bottles"
 
 set_ruby_variables() {
   # Handle the case where /usr/local/bin/brew is run under arm64.
@@ -25,6 +25,9 @@ set_ruby_variables() {
     if [[ -n "${HOMEBREW_MACOS}" ]]
     then
       ruby_OS="darwin"
+    elif [[ -n "${HOMEBREW_OHOS}" ]]
+    then
+      ruby_OS="ohos"
     elif [[ -n "${HOMEBREW_LINUX}" ]]
     then
       ruby_OS="linux"
@@ -54,14 +57,38 @@ set_ruby_variables() {
         return
       fi
     fi
-    if [[ -n "${HOMEBREW_BOTTLE_DOMAIN}" ]]
+    if [[ -n "${HOMEBREW_VENDOR_DOMAIN}" ]]
     then
-      ruby_URLs+=("${HOMEBREW_BOTTLE_DOMAIN}/${ruby_FILENAME}")
+      ruby_URLs+=("${HOMEBREW_VENDOR_DOMAIN}/bottles-portable-ruby/${ruby_FILENAME}")
     fi
     ruby_URLs+=(
-      "https://ghcr.io/v2/homebrew/core/portable-ruby/blobs/sha256:${ruby_SHA}"
+      "${HOMEBREW_VENDOR_DEFAULT_DOMAIN}/${ruby_FILENAME}"
     )
-    ruby_URL="${ruby_URLs[0]}"
+    ruby_URL="${ruby_URLs[1]}"
+  fi
+}
+
+set_git_variables() {
+  git_OS="ohos"
+  git_PROCESSOR="arm64"
+
+  git_PLATFORMINFO="${HOMEBREW_LIBRARY}/Homebrew/vendor/portable-git-${git_PROCESSOR}-${git_OS}"
+  if [[ -f "${git_PLATFORMINFO}" && -r "${git_PLATFORMINFO}" ]]
+  then
+    # git_TAG and git_SHA will be set via the sourced file if it exists
+    # shellcheck disable=SC1090
+    source "${git_PLATFORMINFO}"
+  fi
+
+  # Dynamic variables can't be detected by shellcheck
+  # shellcheck disable=SC2034
+  if [[ -n "${git_TAG}" && -n "${git_SHA}" ]]
+  then
+    git_FILENAME="portable-git-${HOMEBREW_PORTABLE_GIT_VERSION}.${git_TAG}.bottle.tar.gz"
+    git_URLs+=(
+      "${HOMEBREW_VENDOR_DEFAULT_DOMAIN}/${git_FILENAME}"
+    )
+    git_URL="${git_URLs[1]}"
   fi
 }
 
@@ -108,7 +135,7 @@ fetch() {
   # shellcheck disable=SC2153
   if [[ -z "${HOMEBREW_CURLRC}" ]]
   then
-    curl_args[${#curl_args[*]}]="-q"
+    curl_args+=("-q")
   elif [[ "${HOMEBREW_CURLRC}" == /* ]]
   then
     curl_args+=("-q" "--config" "${HOMEBREW_CURLRC}")
@@ -119,7 +146,6 @@ fetch() {
     --fail
     --remote-time
     --location
-    --user-agent "${HOMEBREW_USER_AGENT_CURL}"
   )
 
   if [[ -n "${HOMEBREW_GITHUB_PACKAGES_AUTH}" ]]
@@ -130,13 +156,20 @@ fetch() {
 
   if [[ -n "${HOMEBREW_QUIET}" ]]
   then
-    curl_args[${#curl_args[*]}]="--silent"
+    curl_args+=("--silent")
   elif [[ -z "${HOMEBREW_VERBOSE}" ]]
   then
-    curl_args[${#curl_args[*]}]="--progress-bar"
+    curl_args+=("--progress-bar")
   fi
 
   temporary_path="${CACHED_LOCATION}.incomplete"
+  
+  if [[ -n "${HOMEBREW_CURL_PATH}" ]]
+  then
+    HOMEBREW_CURL="#{HOMEBREW_CURL_PATH}"
+  else
+    HOMEBREW_CURL="curl"
+  fi
 
   mkdir -p "${HOMEBREW_CACHE}"
   [[ -n "${HOMEBREW_QUIET}" ]] || ohai "Downloading ${VENDOR_URL}" >&2
@@ -181,9 +214,7 @@ fetch() {
 Failed to download ${VENDOR_NAME} from the following locations:
 ${vendor_locations}
 
-Do not file an issue on GitHub about this; you will need to figure out for
-yourself what issue with your internet connection restricts your access to
-GitHub (used for Homebrew updates and binary packages).
+Do not file an issue on GitCode about this;
 EOS
     fi
 
@@ -197,14 +228,14 @@ EOS
     sha="$(/usr/bin/shasum -a 256 "${CACHED_LOCATION}" | cut -d' ' -f1)"
   fi
 
-  if [[ -z "${sha}" && -x "$(type -P sha256sum)" ]]
+  if [[ -z "${sha}" && -x "$(whence -p sha256sum)" ]]
   then
     sha="$(sha256sum "${CACHED_LOCATION}" | cut -d' ' -f1)"
   fi
 
   if [[ -z "${sha}" ]]
   then
-    if [[ -x "$(type -P ruby)" ]]
+    if [[ -x "$(whence -p ruby)" ]]
     then
       sha="$(
         ruby <<EOSCRIPT
@@ -345,16 +376,22 @@ homebrew-vendor-install() {
   then
     VENDOR_PROCESSOR="${HOMEBREW_PROCESSOR}"
   fi
-
-  set_ruby_variables
-  check_linux_glibc_version
+  
+  if [[ "${VENDOR_NAME}" == "git" ]]
+  then
+    source "${HOMEBREW_LIBRARY}/Homebrew/utils/git.sh"
+    set_git_variables
+  else
+    source "${HOMEBREW_LIBRARY}/Homebrew/utils/ruby.sh"
+    set_ruby_variables
+  fi
 
   filename_var="${VENDOR_NAME}_FILENAME"
   sha_var="${VENDOR_NAME}_SHA"
   url_var="${VENDOR_NAME}_URL"
-  VENDOR_FILENAME="${!filename_var}"
-  VENDOR_SHA="${!sha_var}"
-  VENDOR_URL="${!url_var}"
+  VENDOR_FILENAME="${(P)filename_var}"
+  VENDOR_SHA="${(P)sha_var}"
+  VENDOR_URL="${(P)url_var}"
   VENDOR_VERSION="$(cat "${VENDOR_DIR}/portable-${VENDOR_NAME}-version")"
 
   if [[ -z "${VENDOR_URL}" || -z "${VENDOR_SHA}" ]]
@@ -365,7 +402,8 @@ homebrew-vendor-install() {
   # Expand the name to an array of variables
   # The array name must be "${VENDOR_NAME}_URLs"! Otherwise substitution errors will occur!
   # shellcheck disable=SC2086
-  read -r -a VENDOR_URLs <<<"$(eval "echo "\$\{${url_var}s[@]\}"")"
+  vendor_url_vars="${url_var}s"
+  VENDOR_URLs=( "${(P)vendor_url_vars}" )
 
   CACHED_LOCATION="${HOMEBREW_CACHE}/${VENDOR_FILENAME}"
 
