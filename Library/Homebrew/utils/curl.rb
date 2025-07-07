@@ -259,8 +259,7 @@ module Utils
         end
       end
 
-      args = ["--remote-time", "--output", destination.to_s, *args]
-
+      args = ["-k", "-L", "--remote-time", "--output", destination.to_s, *args]
       curl(*args, **options)
     end
 

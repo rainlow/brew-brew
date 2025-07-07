@@ -28,10 +28,22 @@ case "${OSTYPE}" in
     HOMEBREW_SYSTEM="$(uname -s)"
     ;;
 esac
+
+# use musl libc check ohos
+OHOS_MUSL_LIBC="/lib/ld-musl-aarch64.so.1"
+if [[ -f "${OHOS_MUSL_LIBC}" ]] && strings ${OHOS_MUSL_LIBC} | grep -q "OHOS"
+then
+  HOMEBREW_SYSTEM="Linux"
+  HOMEBREW_LINUX="1"
+  HOMEBREW_OHOS=1
+fi
+
 HOMEBREW_PHYSICAL_PROCESSOR="${HOMEBREW_PROCESSOR}"
 
 HOMEBREW_MACOS_ARM_DEFAULT_PREFIX="/opt/homebrew"
 HOMEBREW_MACOS_ARM_DEFAULT_REPOSITORY="${HOMEBREW_MACOS_ARM_DEFAULT_PREFIX}"
+HOMEBREW_OHOS_DEFAULT_PREFIX="/opt/harmonybrew"
+HOMEBREW_OHOS_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_LINUX_DEFAULT_PREFIX="/home/linuxbrew/.linuxbrew"
 HOMEBREW_LINUX_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_PREFIX}/Homebrew"
 HOMEBREW_GENERIC_DEFAULT_PREFIX="/usr/local"
@@ -44,6 +56,11 @@ elif [[ -n "${HOMEBREW_LINUX}" ]]
 then
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_LINUX_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_LINUX_DEFAULT_REPOSITORY}"
+    if [[ -n "${HOMEBREW_OHOS}" ]]
+    then
+      HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_OHOS_DEFAULT_PREFIX}"
+      HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_OHOS_DEFAULT_REPOSITORY}"
+    fi
 else
   HOMEBREW_DEFAULT_PREFIX="${HOMEBREW_GENERIC_DEFAULT_PREFIX}"
   HOMEBREW_DEFAULT_REPOSITORY="${HOMEBREW_GENERIC_DEFAULT_REPOSITORY}"
@@ -438,6 +455,9 @@ then
   then
     export LC_ALL="en_US.UTF-8"
   fi
+elif [[ -n "${HOMEBREW_OHOS}" ]]
+then
+  export LC_ALL="en_US.UTF-8"
 else
   if ! command -v locale >/dev/null
   then
@@ -700,7 +720,7 @@ else
   HOMEBREW_PRODUCT="${HOMEBREW_SYSTEM}brew"
   # Don't try to follow /etc/os-release
   # shellcheck disable=SC1091,SC2154
-  [[ -n "${HOMEBREW_LINUX}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
+  [[ -n "${HOMEBREW_LINUX}" ]] && [[ -z "${HOMEBREW_OHOS}" ]] && HOMEBREW_OS_VERSION="$(source /etc/os-release && echo "${PRETTY_NAME}")"
   : "${HOMEBREW_OS_VERSION:=$(uname -r)}"
   HOMEBREW_OS_USER_AGENT_VERSION="${HOMEBREW_OS_VERSION}"
 
@@ -734,6 +754,7 @@ Your curl executable: $(type -p "${HOMEBREW_CURL}")"
   # Git 2.7.4 is the version of git on Ubuntu 16.04 LTS (Xenial Xerus).
   HOMEBREW_MINIMUM_GIT_VERSION="2.7.0"
   git_version_output="$(${HOMEBREW_GIT} --version 2>/dev/null)"
+
   # $extra is intentionally discarded.
   # shellcheck disable=SC2034
   IFS='.' read -r major minor micro build extra <<<"${git_version_output##* }"
@@ -990,14 +1011,14 @@ then
   export HOMEBREW_RUBY_WARNINGS="-W1"
 fi
 
-export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
+export HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/brew"
 if [[ -z "${HOMEBREW_BREW_GIT_REMOTE}" ]]
 then
   HOMEBREW_BREW_GIT_REMOTE="${HOMEBREW_BREW_DEFAULT_GIT_REMOTE}"
 fi
 export HOMEBREW_BREW_GIT_REMOTE
 
-export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
+export HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://gitcode.com/Harmonybrew/homebrew-core"
 if [[ -z "${HOMEBREW_CORE_GIT_REMOTE}" ]]
 then
   HOMEBREW_CORE_GIT_REMOTE="${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}"
@@ -1087,20 +1108,20 @@ else
 fi
 
 # Avoid picking up any random `sudo` in `PATH`.
-if [[ -x /usr/bin/sudo ]]
-then
-  SUDO=/usr/bin/sudo
-else
-  # Do this after ensuring we're using default Bash builtins.
-  SUDO="$(command -v sudo 2>/dev/null)"
-fi
+# if [[ -x /usr/bin/sudo ]]
+# then
+#   SUDO=/usr/bin/sudo
+# else
+#   # Do this after ensuring we're using default Bash builtins.
+#   SUDO="$(command -v sudo 2>/dev/null)"
+# fi
 
-# Reset sudo timestamp to avoid running unauthorized sudo commands
-if [[ -n "${SUDO}" ]]
-then
-  "${SUDO}" --reset-timestamp 2>/dev/null || true
-fi
-unset SUDO
+# # Reset sudo timestamp to avoid running unauthorized sudo commands
+# if [[ -n "${SUDO}" ]]
+# then
+#   "${SUDO}" --reset-timestamp 2>/dev/null || true
+# fi
+# unset SUDO
 
 if [[ -n "${HOMEBREW_BASH_COMMAND}" ]]
 then

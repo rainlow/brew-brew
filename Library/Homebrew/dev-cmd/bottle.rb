@@ -434,7 +434,7 @@ module Homebrew
             end
           end || 0
         end
-
+	
         filename = ::Bottle::Filename.create(formula, bottle_tag, rebuild)
         local_filename = filename.to_s
         bottle_path = Pathname.pwd/local_filename

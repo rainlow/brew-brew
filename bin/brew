@@ -1,10 +1,10 @@
-#!/bin/bash -pu
+#!/bin/zsh -pu
 set -u
 
 # Fail fast with concise message when not using bash
 # Single brackets is needed here for POSIX compatibility
 # shellcheck disable=SC2292
-if [ -z "${BASH_VERSION:-}" ]
+if [ -z "${BASH_VERSION:-}" && -z "${ZSH_VERSION:-}" ]
 then
   echo "Error: Bash is required to run brew." >&2
   exit 1
@@ -302,4 +302,4 @@ fi
 
 unset VAR ENV_VAR_NAMES
 
-exec /usr/bin/env -i "${FILTERED_ENV[@]}" /bin/bash -p "${HOMEBREW_LIBRARY}/Homebrew/brew.sh" "$@"
+exec /bin/env -i "${FILTERED_ENV[@]}" /bin/zsh -p "${HOMEBREW_LIBRARY}/Homebrew/brew.sh" "$@"

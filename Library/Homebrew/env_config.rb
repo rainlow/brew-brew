@@ -125,7 +125,7 @@ module Homebrew
       },
       HOMEBREW_CORE_GIT_REMOTE:                  {
         description:  "Use this URL as the Homebrew/homebrew-core `git`(1) remote.",
-        default_text: "`https://github.com/Homebrew/homebrew-core`.",
+        default_text: "`https://gitcode.com/Harmonybrew/homebrew-core`.",
         default:      HOMEBREW_CORE_DEFAULT_GIT_REMOTE,
       },
       HOMEBREW_CURLRC:                           {

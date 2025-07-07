@@ -23,6 +23,17 @@ module OS
     return false if ENV["HOMEBREW_TEST_GENERIC_OS"]
 
     RbConfig::CONFIG["host_os"].include? "linux"
+
+  end
+
+  # Check whether the operating system is OpenHarmony.
+  #
+  # @api public
+  sig { returns(T::Boolean) }
+  def self.ohos?
+    return false if ENV["HOMEBREW_TEST_GENERIC_OS"]
+
+    RbConfig::CONFIG["host_os"].include? "ohos"
   end
 
   # Get the kernel version.

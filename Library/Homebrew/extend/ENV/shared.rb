@@ -204,6 +204,7 @@ module SharedEnvExtension
   # end</pre>
   sig { returns(T.any(Symbol, String)) }
   def compiler
+    @cc = "clang"
     @compiler ||= if (cc = @cc)
       warn_about_non_apple_gcc(cc) if cc.match?(GNU_GCC_REGEXP)
 

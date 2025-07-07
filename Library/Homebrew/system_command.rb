@@ -209,12 +209,12 @@ class SystemCommand
                      "--", "/usr/bin/sudo"]
     end
     user_flags += ["-u", "root"] if sudo_as_root?
-    ["/usr/bin/sudo", *user_flags, *askpass_flags, "-E", *env_args, "--"]
+    ["/bin/sudo", *user_flags, *askpass_flags, "-E", *env_args, "--"]
   end
 
   sig { returns(T::Array[String]) }
   def env_prefix
-    ["/usr/bin/env", *env_args]
+    ["/bin/env", *env_args]
   end
 
   sig { returns(T::Array[String]) }

@@ -17,6 +17,7 @@ module OS
           /lib/ld-linux-armhf.so.3
           /system/bin/linker64
           /system/bin/linker
+          /system/lib/ld-musl-aarch64.so.1
         ].freeze
 
         # We link GCC runtime libraries that are not specifically used for Fortran,
