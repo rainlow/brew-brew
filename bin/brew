@@ -1,4 +1,4 @@
-#!/bin/zsh -pu
+#!/bin/zsh
 set -u
 
 # Fail fast with concise message when not using bash
@@ -302,4 +302,4 @@ fi
 
 unset VAR ENV_VAR_NAMES
 
-exec /bin/env -i "${FILTERED_ENV[@]}" /bin/zsh -p "${HOMEBREW_LIBRARY}/Homebrew/brew.sh" "$@"
+exec /usr/bin/env -i "${FILTERED_ENV[@]}" zsh -p "${HOMEBREW_LIBRARY}/Homebrew/brew.sh" "$@"
