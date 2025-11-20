@@ -3,13 +3,13 @@
 # Fail fast with concise message when not using bash
 # Single brackets is needed here for POSIX compatibility
 # shellcheck disable=SC2292
-if [ -z "${BASH_VERSION:-}" && -z "${ZSH_VERSION:-}" ]
+if [[ -z "${BASH_VERSION:-}" && -z "${ZSH_VERSION:-}" ]]
 then
   echo "Error: Bash is required to run brew." >&2
   exit 1
 fi
 
-set +o posix # as we are using bash now
+#set +o posix # as we are using bash now
 
 # Fail fast with concise messages when PWD has issues
 if [[ -z "${PWD-}" ]]
