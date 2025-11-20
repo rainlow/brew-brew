@@ -48,13 +48,13 @@ symlink_target_directory() {
 }
 
 # Enable and use default Bash builtins rather than user-defined functions
-builtin enable compgen unset
-for cmd in $(builtin compgen -A builtin)
-do
-  builtin unset -f "${cmd}"
-  builtin enable "${cmd}"
-done
-unset cmd
+#builtin enable compgen unset
+#for cmd in $(builtin compgen -A builtin)
+#do
+#  builtin unset -f "${cmd}"
+#  builtin enable "${cmd}"
+#done
+#unset cmd
 
 # Take the HOMEBREW_PATH if we are running brew within brew, otherwise we would lose the original path.
 if [[ -n "${HOMEBREW_BREW_FILE:-}" && -n "${HOMEBREW_PATH:-}" ]]
