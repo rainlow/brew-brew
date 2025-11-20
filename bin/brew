@@ -1,4 +1,4 @@
-#!/bin/zsh -pu
+#!/bin/zsh -p
 
 # Fail fast with concise message when not using bash
 # Single brackets is needed here for POSIX compatibility
