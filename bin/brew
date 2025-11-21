@@ -267,7 +267,7 @@ ENV_VAR_NAMES=(
   http_proxy https_proxy ftp_proxy no_proxy all_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY
 )
 # Filter all but the specific variables.
-for VAR in "${ENV_VAR_NAMES[@]}" "${!HOMEBREW_@}"
+for VAR in "${ENV_VAR_NAMES[@]}" "${(P)HOMEBREW_@}"
 do
   # Skip if variable value is empty.
   [[ -z "${(P)VAR:-}" ]] && continue
