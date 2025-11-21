@@ -1,4 +1,5 @@
 #!/bin/zsh -p
+emulate bash
 
 # Fail fast with concise message when not using bash
 # Single brackets is needed here for POSIX compatibility
