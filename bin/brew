@@ -1,5 +1,4 @@
 #!/bin/zsh -p
-emulate bash
 
 # Fail fast with concise message when not using bash
 # Single brackets is needed here for POSIX compatibility
@@ -184,12 +183,12 @@ MANPAGE_VARS=(
 for VAR in "${MANPAGE_VARS[@]}"
 do
   # Skip if variable value is empty or set to 0.
-  [[ -z "${!VAR:-}" || "${!VAR:-}" = "0" ]] && continue
+  [[ -z "${(P)VAR:-}" || "${(P)VAR:-}" = "0" ]] && continue
 
   VAR_NEW="HOMEBREW_${VAR}"
   # Skip if existing HOMEBREW_* variable is set.
-  [[ -n "${!VAR_NEW:-}" ]] && continue
-  export "${VAR_NEW}"="${!VAR}"
+  [[ -n "${(P)VAR_NEW:-}" ]] && continue
+  export "${VAR_NEW}"="${(P)VAR}"
 done
 
 # We don't want to take the user's value for, e.g., `HOMEBREW_PATH` here!
@@ -213,11 +212,11 @@ USED_BY_HOMEBREW_VARS=(
 for VAR in "${USED_BY_HOMEBREW_VARS[@]}"
 do
   # Skip if variable value is empty.
-  [[ -z "${!VAR:-}" ]] && continue
+  [[ -z "${(P)VAR:-}" ]] && continue
 
   # We unconditionally override `HOMEBREW_*` here.
   VAR_NEW="HOMEBREW_${VAR}"
-  export "${VAR_NEW}"="${!VAR}"
+  export "${VAR_NEW}"="${(P)VAR}"
 done
 
 unset VAR VAR_NEW MANPAGE_VARS USED_BY_HOMEBREW_VARS
@@ -271,9 +270,9 @@ ENV_VAR_NAMES=(
 for VAR in "${ENV_VAR_NAMES[@]}" "${!HOMEBREW_@}"
 do
   # Skip if variable value is empty.
-  [[ -z "${!VAR:-}" ]] && continue
+  [[ -z "${(P)VAR:-}" ]] && continue
 
-  FILTERED_ENV+=("${VAR}=${!VAR}")
+  FILTERED_ENV+=("${VAR}=${(P)VAR}")
 done
 
 if [[ -n "${CI:-}" ]]
@@ -281,22 +280,22 @@ then
   for VAR in "${!GITHUB_@}"
   do
     # Skip if variable value is empty.
-    [[ -z "${!VAR:-}" ]] && continue
+    [[ -z "${(P)VAR:-}" ]] && continue
     # Skip variables that look like tokens.
     [[ "${VAR}" = *TOKEN* ]] && continue
 
-    FILTERED_ENV+=("${VAR}=${!VAR}")
+    FILTERED_ENV+=("${VAR}=${(P)VAR}")
   done
 fi
 
 if [[ -n "${HOMEBREW_RDBG:-}" ]]
 then
-  for VAR in "${!RUBY_DEBUG_@}"
+for VAR in "${(P)RUBY_DEBUG_@}"
   do
     # Skip if variable value is empty.
-    [[ -z "${!VAR:-}" ]] && continue
+    [[ -z "${(P)VAR:-}" ]] && continue
 
-    FILTERED_ENV+=("${VAR}=${!VAR}")
+    FILTERED_ENV+=("${VAR}=${(P)VAR}")
   done
 fi
 
