@@ -278,7 +278,7 @@ done
 
 if [[ -n "${CI:-}" ]]
 then
-  for VAR in "${!GITHUB_@}"
+  for VAR in "${(k)parameters[(I)GITHUB_*]}"
   do
     # Skip if variable value is empty.
     [[ -z "${(P)VAR:-}" ]] && continue
@@ -291,7 +291,7 @@ fi
 
 if [[ -n "${HOMEBREW_RDBG:-}" ]]
 then
-for VAR in "${(P)RUBY_DEBUG_@}"
+  for VAR in "${(k)parameters[(I)RUBY_DEBUG_*]}"
   do
     # Skip if variable value is empty.
     [[ -z "${(P)VAR:-}" ]] && continue
