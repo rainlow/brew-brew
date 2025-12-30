@@ -112,6 +112,11 @@ class DevelopmentTools
       Pathname.new("/usr/bin/gcc")
     end
 
+    sig { returns(Pathname) }
+    def host_clang_path
+      Pathname.new("/usr/bin/clang")
+    end
+
     # Get the GCC version.
     #
     # @api internal

@@ -61,7 +61,7 @@ module SystemConfig
       if clang_build.null?
         clang.to_s
       else
-        "#{clang} build #{clang_build}"
+        "#{clang} build #{clang_build} => #{::DevelopmentTools.locate(:clang)}"
       end
     end
 
