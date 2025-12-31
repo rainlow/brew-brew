@@ -58,10 +58,10 @@ class Tap
     repository = T.must(repository)
 
     # We special case homebrew and linuxbrew so that users don't have to shift in a terminal.
-    user = user.capitalize if ["homebrew", "linuxbrew"].include?(user)
+    user = user.capitalize if ["harmonybrew", "linuxbrew"].include?(user)
     repository = repository.sub(HOMEBREW_OFFICIAL_REPO_PREFIXES_REGEX, "")
 
-    return CoreTap.instance if ["Homebrew", "Linuxbrew"].include?(user) && ["core", "homebrew"].include?(repository)
+    return CoreTap.instance if ["Harmonybrew", "Linuxbrew"].include?(user) && ["core", "homebrew"].include?(repository)
     return CoreCaskTap.instance if user == "Homebrew" && repository == "cask"
 
     cache_key = "#{user}/#{repository}".downcase
@@ -288,7 +288,7 @@ class Tap
   # The default remote path to this {Tap}.
   sig { returns(String) }
   def default_remote
-    "https://gitcode.com/#{full_name}"
+    "https://gitcode.com/#{full_name}.git"
   end
 
   sig { returns(String) }
