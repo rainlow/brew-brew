@@ -269,6 +269,7 @@ esac
 #####
 
 check-run-command-as-root() {
+  [[ -z ${HOMEBREW_OHOS} ]] || return
   [[ "${EUID}" == 0 || "${UID}" == 0 ]] || return
 
   # Allow Azure Pipelines/GitHub Actions/Docker/Podman/Concourse/Kubernetes to do everything as root (as it's normal there)
