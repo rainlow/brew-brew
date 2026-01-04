@@ -14,7 +14,7 @@ tap_path() {
     odie "Invalid tap name: ${tap}"
   fi
 
-  user="${"${tap%%/*}:l}"
+  user="${${tap%%/*}:l}"
   repo="${${tap#*/}:l}"
 
   for part in "${user}" "${repo}"
@@ -39,7 +39,7 @@ homebrew---repository() {
   fi
 
   (
-    for tap in "$@"
+    for tap in "$@";
     do
       tap_path "${tap}"
     done
