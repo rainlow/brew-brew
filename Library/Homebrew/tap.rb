@@ -557,7 +557,7 @@ class Tap
       credentials each time you update, you can use git HTTP credential
       caching or issue the following command:
         cd #{path}
-        git remote set-url origin git@github.com:#{full_name}.git
+        git remote set-url origin git@gitcode.com:#{full_name}.git
     EOS
   end
 
