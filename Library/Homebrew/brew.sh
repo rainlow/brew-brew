@@ -31,7 +31,7 @@ esac
 
 # use musl libc check ohos
 OHOS_MUSL_LIBC="/lib/ld-musl-aarch64.so.1"
-if [[ -f "${OHOS_MUSL_LIBC}" ]] && strings ${OHOS_MUSL_LIBC} | grep -q "OHOS"
+if [[ -f "${OHOS_MUSL_LIBC}" ]] && strings ${OHOS_MUSL_LIBC} | grep -q "OHOS" &> /dev/null
 then
   HOMEBREW_PROCESSOR="arm64"
   HOMEBREW_SYSTEM="Linux"
